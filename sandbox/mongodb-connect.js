@@ -22,16 +22,16 @@ MongoClient.connect('mongodb://localhost:27017/', (err, client) => {
   // });
 
   // Insert a record into the User Collection
-  db.collection('User').insertOne({
-    name: "Joe Kljaich",
-    age: 59,
-    location: "Naperville"
-  }, (err, result) => {
-    if (err) {
-      return console.log (`Unable to insert record in User ${err}`);
-    }
-    console.log (JSON.stringify(result.ops, undefined, 2));
-  });
+  // db.collection('User').insertOne({
+  //   name: "Joe Kljaich",
+  //   age: 59,
+  //   location: "Naperville"
+  // }, (err, result) => {
+  //   if (err) {
+  //     return console.log (`Unable to insert record in User ${err}`);
+  //   }
+  //   console.log (JSON.stringify(result.ops, undefined, 2));
+  // });
 
   client.close();
 })
