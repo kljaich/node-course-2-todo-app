@@ -11,7 +11,7 @@ app.use(bodyParser.json());
 
 // Create a new todo
 app.post('/todos', (req, res) => {
-  console.log(req.body);
+  // console.log(req.body);
   var todo = new Todo({
     text: req.body.text
   })
