@@ -1,15 +1,19 @@
 const expect = require('expect');
 const request = require('supertest');
+const {ObjectID} = require('mongodb');
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 
 // Seed for the todos database
 const todos = [
-  { text: 'First test todo' },
-  { text: 'Second test todo' },
-  { text: 'Third test todo' }
+  { _id: new ObjectID(), text: 'First test todo' },
+  { _id: new ObjectID(), text: 'Second test todo' },
+  { _id: new ObjectID(), text: 'Third test todo' }
 ];
+
+console.log("HERE!", todos[0]._id);
+console.log("HERE!", todos[1]._id);
 
 // Done before every test case to remove all elements
 beforeEach((done) => {
@@ -92,4 +96,35 @@ describe('GET /todos', () => {
       })
       .end(done);
   });
+});
+
+describe('GET /todos/:id', () => {
+  it('should return todo doc for the id', (done) => {
+    request(app)
+      .get(`/todos/${todos[0]._id.toHexString()}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.text).toBe(todos[0].text)
+      })
+      .end(done);
+  });
+
+  it('should return 404 if todo not found', (done) => {
+
+    // Generate valid ID, just not in the database
+    var validID = new ObjectID();
+
+    request(app)
+      .get(`/todos/${validID.toHexString()}`)
+      .expect(404)
+      .end(done);
+  });
+
+  it('should return 404 for non-object ids', (done) => {
+    request(app)
+      .get('/todos/123')
+      .expect(404)
+      .end(done)
+  });
+
 });
