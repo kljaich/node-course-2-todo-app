@@ -8,6 +8,8 @@ var {User} = require('./models/user');
 
 var app = express();
 
+var port = process.env.port || 3000;
+
 app.use(bodyParser.json());
 
 // Create a new todo
@@ -55,7 +57,7 @@ app.get('/todos/:id', (req,res) => {
  });
 
 app.listen(3000, () => {
-  console.log('Started on port 3000');
+  console.log(`Started on port ${port}`);
 })
 
 // Export for testing
