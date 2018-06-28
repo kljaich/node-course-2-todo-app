@@ -36,6 +36,7 @@ app.get('/todos', (req,res) => {
   } )
 });
 
+// Get todo by id route
 app.get('/todos/:id', (req,res) => {
     // res.send(req.params);
     var id = req.params.id;
@@ -55,6 +56,27 @@ app.get('/todos/:id', (req,res) => {
       res.status(400).send();
     })
  });
+
+ // Remove todo by id route
+ app.delete('/todos/:id', (req,res) => {
+     // res.send(req.params);
+     var id = req.params.id;
+
+     // Verify we have a formated id
+     if (!ObjectID.isValid(id)) {
+       return res.status(404).send();
+     }
+
+     Todo.findByIdAndRemove(id).then((todo) => {
+       if (!todo) {
+         res.status(404).send();
+       } else {
+         res.status(200).send({todo});
+       }
+     }, (e) => {
+       res.status(400).send();
+     })
+  });
 
 app.listen(port, () => {
   console.log(`Started on port ${port}`);
