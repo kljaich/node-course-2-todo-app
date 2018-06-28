@@ -1,5 +1,6 @@
-var express = require('express');
-var bodyParser = require('body-parser');
+const _ = require('lodash');
+const express = require('express');
+const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
 
 var {mongoose} = require('./db/mongoose');
@@ -62,7 +63,7 @@ app.get('/todos/:id', (req,res) => {
      // res.send(req.params);
      var id = req.params.id;
 
-     // Verify we have a formated id
+     // Verify we have a well formatted id
      if (!ObjectID.isValid(id)) {
        return res.status(404).send();
      }
@@ -77,6 +78,39 @@ app.get('/todos/:id', (req,res) => {
        res.status(400).send();
      })
   });
+
+// Update todo by id route
+app.patch('/todos/:id', (req,res) => {
+    var id = req.params.id;
+
+    // Only update these properties.  If user tried to specify others,
+    // they will not be picked.
+    var body = _.pick(req.body, ['text', 'completed']);
+
+    // Verify we have a well formatted id
+    if (!ObjectID.isValid(id)) {
+      return res.status(404).send();
+    }
+
+    if (_.isBoolean(body.completed) && body.completed) {
+      body.completedAt = new Date().getTime();
+    } else {
+      // Reset the fields
+      body.completed = false;
+      body.completedAt = null;
+    }
+
+    Todo.findByIdAndUpdate(id, {$set: body}, {new: true})
+      .then((todo) => {
+        if (!todo) {
+          return res.status(404).send();
+        }
+
+        res.status(200).send(todo);
+      }).catch((e) => {
+        res.status(400).send();
+      });
+});
 
 app.listen(port, () => {
   console.log(`Started on port ${port}`);
