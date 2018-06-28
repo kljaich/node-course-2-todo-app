@@ -12,8 +12,8 @@ const todos = [
   { _id: new ObjectID(), text: 'Third test todo' }
 ];
 
-console.log("HERE!", todos[0]._id);
-console.log("HERE!", todos[1]._id);
+// console.log("HERE!", todos[0]._id);
+// console.log("HERE!", todos[1]._id);
 
 // Done before every test case to remove all elements
 beforeEach((done) => {
@@ -124,7 +124,50 @@ describe('GET /todos/:id', () => {
     request(app)
       .get('/todos/123')
       .expect(404)
-      .end(done)
+      .end(done);
+  });
+
+});
+
+describe('DELETE /todo/:id', () => {
+
+  it('should remove a todo', (done) => {
+    var hexID = todos[0]._id.toHexString();
+
+    request(app)
+      .delete(`/todos/${hexID}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.text).toBe(todos[0].text)
+      })
+      .end((err, res) => {
+        if (err) {
+          return done(err);
+        }
+
+        // Shouldn't find it if it was deleted
+        Todo.findById(hexID).then((todo) => {
+          expect(todo).toBeFalsy();
+          done();
+        }).catch((e) => done(e))
+      });
+  });
+
+  it('should return 404 for non-existing id', (done) => {
+    // Generate valid ID, just not in the database
+    var validID = new ObjectID().toHexString();
+
+    request(app)
+      .delete(`/todos/${validID}`)
+      .expect(404)
+      .end(done);
+  });
+
+  it('should return a 404 for non-object ids', (done) => {
+      request(app)
+        .delete('/todos/123abc')
+        .expect(404)
+        .end(done);
   });
 
 });
