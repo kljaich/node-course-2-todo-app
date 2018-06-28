@@ -9,7 +9,7 @@ const {Todo} = require('./../models/todo');
 const todos = [
   { _id: new ObjectID(), text: 'First test todo' },
   { _id: new ObjectID(), text: 'Second test todo' },
-  { _id: new ObjectID(), text: 'Third test todo' }
+  { _id: new ObjectID(), text: 'Third test todo', completed: true, completedAt:123456 }
 ];
 
 // console.log("HERE!", todos[0]._id);
@@ -99,6 +99,7 @@ describe('GET /todos', () => {
 });
 
 describe('GET /todos/:id', () => {
+
   it('should return todo doc for the id', (done) => {
     request(app)
       .get(`/todos/${todos[0]._id.toHexString()}`)
@@ -168,6 +169,42 @@ describe('DELETE /todo/:id', () => {
         .delete('/todos/123abc')
         .expect(404)
         .end(done);
+  });
+
+});
+
+describe('PATCH /todo/:id', () => {
+
+  it('should update an id as completed', (done) => {
+    var hexID = todos[1]._id.toHexString();
+    var myText = 'Second test todo updated';
+
+    request(app)
+      .patch(`/todos/${hexID}`)
+      .send({text: myText, completed: true})
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.text).toBe(myText);
+        expect(res.body.completedAt).toBeGreaterThan(0);
+        expect(res.body.completed).toBeTruthy();
+      })
+      .end(done);
+  });
+
+  it('should reset an id as not completed', (done) => {
+    var hexID = todos[2]._id.toHexString();
+    var myText = 'Third test todo updated';
+
+    request(app)
+      .patch(`/todos/${hexID}`)
+      .send({text: myText, completed: false})
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.text).toBe(myText);
+        expect(res.body.completedAt).toBeNull();
+        expect(res.body.completed).toBeFalsy();
+      })
+     .end(done);
   });
 
 });
