@@ -4,6 +4,6 @@ var mongoose = require('mongoose');
 mongoose.Promise = global.Promise;
 
 // Open and manage database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/Todo');
+mongoose.connect(process.env.MONGODB_URI);
 
 module.exports = { mongoose };
