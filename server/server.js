@@ -114,6 +114,41 @@ app.patch('/todos/:id', (req,res) => {
       });
 });
 
+
+// Create a new user
+app.post('/user', (req, res) => {
+
+  // Only accept these properties.  If user tried to specify others,
+  // they will not be picked.
+  var body = _.pick(req.body, ['email', 'password']);
+
+  // console.log(req.body);
+  // console.log(body);
+
+  var user = new User(
+    // text: req.body.text
+    body
+    // email: body.email,
+    // password: body.password
+  );
+
+  //console.log("GOT HERE OK")
+
+  user.save().then(() => {
+    // console.log("DID I GET HERE");
+    return user.generateAuthToken();
+    // res.send(doc);
+  }).then((token) => {
+    // Custom header "x-auth"
+    // console.log("GOT HERE TOO", token);
+    res.status(200).header('x-auth', token).send(user);
+  }).catch((err) => {
+    // console.log("WHY GOT HERE")
+    res.status(400).send(err);
+  })
+});
+
+
 app.listen(port, () => {
   console.log(`Started on port ${port}`);
 })
