@@ -52,6 +52,30 @@ UserSchema.methods.toJSON = function () {
   return rrr;
 };
 
+// Model method
+UserSchema.statics.findByToken = function (token) {
+  var User = this;
+  var decoded;
+
+  try {
+    decoded = jwt.verify(token, 'abc123');
+  } catch (e) {
+    // Return a new promise that will never succeed, e.g., it will
+    // always be rejected.
+    return new Promise((resolve, reject) => {
+      reject();
+    });
+  };
+
+  // Return promise so call can chain promise with another
+  return User.findOne({
+    '_id': decoded._id,
+    'tokens.token': token,
+    'tokens.access': 'auth'
+  });
+}
+
+// Instance method
 UserSchema.methods.generateAuthToken = function () {
 
   // console.log("HERE I AM");
