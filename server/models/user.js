@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 var UserSchema = new mongoose.Schema ({
     email: {
@@ -62,6 +63,7 @@ UserSchema.statics.findByToken = function (token) {
   } catch (e) {
     // Return a new promise that will never succeed, e.g., it will
     // always be rejected.
+    // OR return new Promise.reject();
     return new Promise((resolve, reject) => {
       reject();
     });
@@ -104,6 +106,23 @@ UserSchema.methods.generateAuthToken = function () {
 //  console.log("KKKKKKKK");
   /// return(token);
 };
+
+// Mongoose Middleware: called if saving a user document via Mongoose
+UserSchema.pre('save', function (next) {
+  var user = this;
+
+  if (user.isModified('password')) {
+    bcrypt.genSalt(10, (err, salt) => {
+      bcrypt.hash(user.password, salt, (err, hashedPassword) => {
+        console.log(hashedPassword);
+        user.password = hashedPassword;
+        next();
+      });
+    });
+  } else {
+    next();
+  }
+});
 
 var User = mongoose.model('User', UserSchema);
 
