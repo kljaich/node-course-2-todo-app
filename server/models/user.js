@@ -39,20 +39,6 @@ var UserSchema = new mongoose.Schema ({
     }]
 });
 
-// Override the toJSON method
-UserSchema.methods.toJSON = function () {
-  var user = this;
-
-  //  Convert mongoose Object (e.g., user) to a normal Object to be returned
-  var userObject = user.toObject();
-
-  // Don't return the password or the authentication tokens
-  var rrr =  _.pick(userObject, ['_id', 'email']);
-
-  // return _.pick(userObject, ['_id', 'email']);
-  return rrr;
-};
-
 // Model method
 UserSchema.statics.findByToken = function (token) {
   var User = this;
@@ -75,7 +61,39 @@ UserSchema.statics.findByToken = function (token) {
     'tokens.token': token,
     'tokens.access': 'auth'
   });
-}
+};
+
+UserSchema.statics.findByCredentials = function (email, password) {
+  var User = this;
+
+  return User.findOne({email}).then ((user) => {
+    if (!user) return new Promise.reject();
+
+    // bcrypt only works with callbacks, but want to keep using Promises
+    // so wrap a Promise around it so a promise is always returned back
+    // to the caller
+    return new Promise((resolve, reject) => {
+      bcrypt.compare(password, user.password, (err, res) => {
+        if (res) resolve(user);
+        reject();
+      });
+    });
+  });
+};
+
+// Override the toJSON method
+UserSchema.methods.toJSON = function () {
+  var user = this;
+
+  //  Convert mongoose Object (e.g., user) to a normal Object to be returned
+  var userObject = user.toObject();
+
+  // Don't return the password or the authentication tokens
+  var rrr =  _.pick(userObject, ['_id', 'email']);
+
+  // return _.pick(userObject, ['_id', 'email']);
+  return rrr;
+};
 
 // Instance method
 UserSchema.methods.generateAuthToken = function () {
@@ -102,9 +120,6 @@ UserSchema.methods.generateAuthToken = function () {
     return token;
   });
 
-  // Should never have gotten called.
-//  console.log("KKKKKKKK");
-  /// return(token);
 };
 
 // Mongoose Middleware: called if saving a user document via Mongoose

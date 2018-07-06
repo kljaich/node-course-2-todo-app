@@ -17,7 +17,7 @@ var authenticate = (req, res, next) => {
   }).catch((e) => {
     // Error case, don't call next() because we don't want to proceed to
     // the route
-    res.send(401).send();
+    res.sendStatus(401).send();
   })
 }
 

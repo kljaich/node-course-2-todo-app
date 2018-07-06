@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
 
+// var TodoSchema = new mongoose.Schema ({
 var Todo = mongoose.model('Todo', {
     text: {
       type: String,
@@ -17,6 +18,7 @@ var Todo = mongoose.model('Todo', {
     }
 });
 
+// var Todo = mongoose.model('Todo', TodoSchema);
 module.exports = { Todo };
 
 // Create a new Todo document (not all fields need to be spcified)

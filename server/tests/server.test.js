@@ -4,48 +4,53 @@ const {ObjectID} = require('mongodb');
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
+const {User} = require('./../models/user');
 
-// Seed for the todos database
-const todos = [
-  { _id: new ObjectID(), text: 'First test todo' },
-  { _id: new ObjectID(), text: 'Second test todo' },
-  { _id: new ObjectID(), text: 'Third test todo', completed: true, completedAt:123456 }
-];
+const {todos, users, removeTodos, insertTodos, removeUsers, insertUsers} = require('./seed/seed');
 
-// console.log("HERE!", todos[0]._id);
-// console.log("HERE!", todos[1]._id);
-
-// Done before every test case to remove all elements
-beforeEach((done) => {
-   Todo.remove({}).then(() => {
-     // console.log('GOT HERE');
-     done();
-   });
-});
-
-beforeEach((done) => {
-  Todo.insertMany(todos).then(() => {
-    // console.log('GOT HERE TOO');
-    done();
-  });
-});
-
+// before(() => {
+//   console.log('Executing before()');
+// })
 //
-// After GET added, need to ensure database starts in
-// known state with elements inserted.
-// beforeEach ((done) => {
+// after(() => {
+//   console.log('Executing after()');
+// });
+//
+// beforeEach(() => {
+//   console.log('Executing beforeEach()');
+// });
+//
+// afterEach(() => {
+//   console.log('Executing afterEach()');
+// });
+
+// Done before every test case to remove all Todos and
+// then insert them back - mongodb.2.2.19.  For some reason,
+// need to remove the Todos before the Users.
+beforeEach(removeTodos);
+beforeEach(insertTodos);
+
+// Done before evert test case to remove all Users and
+// then insert them back - mongodb.2.2.19
+beforeEach(removeUsers);
+beforeEach(insertUsers);
+
+// Doesn't work if using mongodb.2.2.19 or if using mongdb.2.2.5
+// beforeEach ((done) =>  {
 //   Todo.remove({}).then(() => {
-//       console.log('Got here one');
+//     console.log('Got here removed documents');
 //     return Todo.insertMany(todos);
 //   }).then(() => {
-//     console.log ('Got here new too');
-//     done()})
+//     console.log ('Got here added documents');
+//     done();
+//   });
 // });
 
 describe('POST /todos', () => {
 
   it('should create a new todo', (done) => {
     var text = 'Test todo text';
+    this.timeout = 15000;
     request(app)
       .post('/todos')
       .send({text})
@@ -57,7 +62,6 @@ describe('POST /todos', () => {
         if (err) {
           return done(err);
         }
-
         Todo.find({text}).then((todos) => {
           expect(todos.length).toBe(1);
           expect(todos[0].text).toBe(text);
@@ -66,7 +70,7 @@ describe('POST /todos', () => {
         // Catch for any errors in the call back function
         }).catch((e) => done(e));
       });
-  });
+ });
 
   it('should not create todo with invalid body data', (done) => {
     request(app)
@@ -74,14 +78,17 @@ describe('POST /todos', () => {
     .send({})
     .expect(400)
     .end((err, res) => {
-      if (err) {
-        return done(err);
-      };
+      // console.log('Inside .end');
+      if (err) return done(err);
 
-      Todo.find().then((todos) => {
+      Todo.find({}).then((todos) => {
+        // console.log('Inside promise - success');
         expect(todos.length).toBe(3);
         done();
-      }).catch((e) => done(e));
+      }).catch((e) => {
+        console.log('Inside .catch()');
+        done(e);
+      });
     });
   });
 });
@@ -94,7 +101,10 @@ describe('GET /todos', () => {
       .expect((res) => {
         expect(res.body.todos.length).toBe(3);
       })
-      .end(done);
+      .end((err, res) => {
+        if (err) return done(err);
+        done();
+      });
   });
 });
 
@@ -107,7 +117,10 @@ describe('GET /todos/:id', () => {
       .expect((res) => {
         expect(res.body.todo.text).toBe(todos[0].text)
       })
-      .end(done);
+      .end((err, res) => {
+        if (err) return done(err)
+        done();
+      });
   });
 
   it('should return 404 if todo not found', (done) => {
@@ -129,6 +142,7 @@ describe('GET /todos/:id', () => {
   });
 
 });
+
 
 describe('DELETE /todo/:id', () => {
 
@@ -206,5 +220,75 @@ describe('PATCH /todo/:id', () => {
       })
      .end(done);
   });
+});
 
+describe('GET /user/me', () => {
+  it('should return user if authenticated', (done) => {
+    request(app)
+      .get('/user/me')
+      .set('x-auth', users[0].tokens[0].token)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body._id).toBe(users[0]._id.toHexString());
+        expect(res.body.email).toBe(users[0].email);
+      })
+      .end (done);
+  })
+
+  it ('should return 401 if not authenticated', (done) => {
+    request(app)
+    .get('/user/me')
+    .expect(401)
+    .expect((res) => {
+      expect(res.body).toMatchObject({});
+    })
+    .end (done);;
+  })
+
+});
+
+describe('POST /user/me', () => {
+
+  it('should create a user', (done) => {
+    var email = 'kljaichj@gmail.com';
+    var password = 'myPassword';
+    request(app)
+    .post('/user')
+    .send({email, password})
+    .expect(200)
+    .expect((res) => {
+      expect(res.headers['x-auth']).toBeDefined();
+      expect(res.body._id).toBeDefined();
+      expect(res.body.email).toBe(email);
+    })
+    .end ((err) => {
+      if (err) return(err);
+
+      User.findOne({email}).then((user) => {
+        expect(user).toBeDefined();
+        expect(user.password).not.toBe(password);
+        done();
+      })
+    });
+  });
+
+  it('should return validation errors if request invalid', (done) => {
+    var email = 'kljaich';
+    var password = '123abc';
+    request(app)
+    .post('/user')
+    .send({email, password})
+    .expect(401)
+    .end (done);
+  });
+
+  it('should not create user if email in use', (done) => {
+    var email = users[0].email;
+    var password = users[0].password;
+    request(app)
+    .post('/user')
+    .send({email, password})
+    .expect(401)
+    .end (done);
+  });
 });

@@ -20,13 +20,13 @@
     "express": "^4.16.3",
     "jsonwebtoken": "^8.3.0",
     "lodash": "^4.17.10",
-    "mongodb": "^3.0.8",
-    "mongoose": "^5.1.0",
+    "mongodb": "^2.2.19",
+    "mongoose": "^5.2.1",
     "validator": "^10.4.0"
   },
   "devDependencies": {
-    "expect": "^23.2.0",
-    "mocha": "^5.2.0",
+    "expect": "^23.3.0",
+    "mocha": "^3.5.3",
     "nodemon": "^1.17.5",
     "supertest": "^3.1.0"
   }
