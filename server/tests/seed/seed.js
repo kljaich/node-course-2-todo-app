@@ -53,20 +53,24 @@ const insertTodos = ((done) => {
 });
 
 const removeUsers = ((done) => {
-  console.log('Before removing Users');
+  // console.log('Before removing Users');
+
+  // The following works:
   // User.remove({}).then(() => {
   //   console.log('Removed all the Users');
   //   done();
   // });
+
+  // And the following works as well.
   var userOne = User.remove({});
   Promise.all([userOne]).then (() => {
-    console.log('Removed all the Users');
+    // console.log('Removed all the Users');
     done();
   });
 });
 
 const insertUsers = ((done) => {
-  console.log('Before inserting Users');
+  // console.log('Before inserting Users');
 
   // Need to call the middleware to hash the
   // password.  UserOne and UserTwo are promises.
@@ -75,7 +79,7 @@ const insertUsers = ((done) => {
 
   // Utility that waits for all promises is the arrar
   Promise.all([userOne, userTwo]).then (() => {
-    console.log('Inserted all the Users');
+    // console.log('Inserted all the Users');
     done();
   });
 });

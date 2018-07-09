@@ -86,7 +86,7 @@ describe('POST /todos', () => {
         expect(todos.length).toBe(3);
         done();
       }).catch((e) => {
-        console.log('Inside .catch()');
+        // console.log('Inside .catch()');
         done(e);
       });
     });
@@ -334,7 +334,24 @@ describe('POST /user/login', () => {
         User.findById(users[1]._id).then((user) => {
           expect(user.tokens.length).toBe(0);;
           done();
-      }).catch((e) => done(e));
-    });
+        }).catch((e) => done(e));
+      });
+  });
+});
+
+describe('DELETE /user/me/token', () => {
+
+  it('should remove auth token on user logout', (done) => {
+    request(app)
+      .delete('/user/me/token')
+      .set('x-auth', users[0].tokens[0].token)
+      .expect(200)
+      .end((err,res) => {
+        if (err) return done(err);
+        User.findById(users[0]._id).then((user) => {
+          expect(user.tokens.length).toBe(0);
+          done();
+        }).catch((e) => done(e));
+      });
   });
 });

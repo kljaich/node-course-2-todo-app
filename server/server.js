@@ -22,7 +22,7 @@ app.post('/todos', (req, res) => {
   var todo = new Todo({
     text: req.body.text
   })
-console.log('POST Creating a new todo');
+  // console.log('POST Creating a new todo');
   todo.save().then((doc) => {
     // console.log('sending new todo: ', todo.text);
     res.send(doc);
@@ -143,7 +143,7 @@ app.post('/user', (req, res) => {
 // Login an existing user
 app.post('/user/login', (req, res) => {
 
-  console.log('Got here: /user/login');
+  // console.log('Got here: /user/login');
 
   // Only accept these properties.  If user tried to specify others,
   // they will not be picked.
@@ -162,10 +162,11 @@ app.post('/user/login', (req, res) => {
 // Logout an existing user's token.  Note, use of authenticate middleware
 // makes this a private route.
 app.delete('/user/me/token', authenticate, (req, res) => {
+  // console.log('Found user', req.token);
   req.user.removeToken(req.token).then(() => {
     res.status(200).send();
   }, () => {
-    console.log('Got here');
+    // console.log('Got here');
     res.status(400).send();
   });
 });
