@@ -4,7 +4,6 @@ const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
-const bcrypt = require('bcryptjs');
 
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
@@ -160,28 +159,16 @@ app.post('/user/login', (req, res) => {
   });
 });
 
-  // User.findOne(email).then ((user) => {
-  //   if (!user) {
-  //     console.log(`${email} not found`);
-  //     res.status(404).send();
-  //   }
-  //
-  //   bcrypt.compare(password.password, user.password, ((err, result) => {
-  //     if (err) res.status(400).send(err);
-  //     if (!result) res.status(401).send();
-  //
-  //     // Returns a promise
-  //     return user.generateAuthToken();
-  //   }));
-  // }).then ((error, result) => {
-  //   if (error) res.status(400).send(error);
-  //   if (!result) res.status(401).send();
-  //   res.status(200).header('x-auth', result).send();
-  // }).catch ((err) => {
-  //   console.log('Catch code: ', err),
-  //   res.status(400).send(err);
-  // });
-// });
+// Logout an existing user's token.  Note, use of authenticate middleware
+// makes this a private route.
+app.delete('/user/me/token', authenticate, (req, res) => {
+  req.user.removeToken(req.token).then(() => {
+    res.status(200).send();
+  }, () => {
+    console.log('Got here');
+    res.status(400).send();
+  });
+});
 
 app.get('/user/me', authenticate, (req, res) => {
   res.send(req.user);

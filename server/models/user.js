@@ -122,6 +122,21 @@ UserSchema.methods.generateAuthToken = function () {
 
 };
 
+UserSchema.methods.removeToken = function (token) {
+  var user = this;
+
+  return user.update({
+    // Remove the entire object where the token
+    // matches.  Can be simplified to "token" instead of
+    // "token: token"
+    $pull: {
+      tokens: {
+        token: token
+      }
+    }
+  })
+}
+
 // Mongoose Middleware: called if saving a user document via Mongoose
 UserSchema.pre('save', function (next) {
   var user = this;
